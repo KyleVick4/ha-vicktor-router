@@ -1,0 +1,26 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Vicktor Router",
+        "description": "Home Assistant's built-in agent handles commands and state questions instantly and deterministically. Anything it doesn't understand falls through to the LLM agent you choose below (chat + memory).",
+        "data": {
+          "fallback_agent": "Fallback conversation agent (your LLM, e.g. Vicktor)"
+        }
+      }
+    },
+    "abort": {
+      "already_configured": "Vicktor Router is already set up."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Vicktor Router",
+        "data": {
+          "fallback_agent": "Fallback conversation agent (your LLM, e.g. Vicktor)"
+        }
+      }
+    }
+  }
+}
