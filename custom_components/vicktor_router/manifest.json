@@ -1,7 +1,7 @@
 {
   "domain": "vicktor_router",
   "name": "Vicktor Router",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "documentation": "https://github.com/KyleVick4/ha-vicktor-router",
   "issue_tracker": "https://github.com/KyleVick4/ha-vicktor-router/issues",
   "dependencies": ["conversation"],

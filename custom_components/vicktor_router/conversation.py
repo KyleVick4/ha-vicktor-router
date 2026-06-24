@@ -38,6 +38,26 @@ from .const import CONF_FALLBACK_AGENT, CONF_PRIMARY_AGENT, DEFAULT_PRIMARY
 _LOGGER = logging.getLogger(__name__)
 
 
+def _build_handled_types() -> frozenset:
+    """Response types that mean the built-in agent actually answered/acted.
+
+    ACTION_DONE  -> a command executed ("turn off the light").
+    QUERY_ANSWER -> a state question answered ("is the light on?" / temps).
+    Anything else (ERROR: no intent match, no valid targets, failed to handle)
+    is NOT a useful local answer, so it falls through to the LLM. This keeps
+    memory questions phrased like device queries ("what's my favorite drink?")
+    out of the built-in agent's "no such device" reply.
+    """
+    types = {IntentResponseType.ACTION_DONE}
+    for name in ("QUERY_ANSWER", "QUERY_SUCCESS"):
+        if hasattr(IntentResponseType, name):
+            types.add(getattr(IntentResponseType, name))
+    return frozenset(types)
+
+
+_HANDLED_TYPES = _build_handled_types()
+
+
 async def async_setup_entry(
     hass: HomeAssistant,
     entry: ConfigEntry,
@@ -90,16 +110,16 @@ class VicktorRouterEntity(ConversationEntity):
                 agent_id=primary,
             )
             resp = result.response
-            no_match = (
-                resp.response_type == IntentResponseType.ERROR
-                and getattr(resp, "error_code", None)
-                == IntentResponseErrorCode.NO_INTENT_MATCH
-            )
-            if not no_match:
+            if resp.response_type in _HANDLED_TYPES:
                 _LOGGER.debug(
                     "vicktor_router: handled locally (type=%s)", resp.response_type
                 )
                 return result
+            _LOGGER.debug(
+                "vicktor_router: not a local answer (type=%s, code=%s) -> fallback",
+                resp.response_type,
+                getattr(resp, "error_code", None),
+            )
         except Exception as err:  # noqa: BLE001
             # A failure in the local agent must never block the LLM fallback.
             _LOGGER.warning(
